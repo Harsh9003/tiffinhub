@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/customer_profile_page.dart';
 
 class CustomerHeader extends StatelessWidget {
   const CustomerHeader({super.key});
@@ -9,12 +10,23 @@ class CustomerHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundColor: Color(0xFFFFE0B2),
-            child: Icon(
-              Icons.person,
-              color: Color(0xFFFF7A00),
+          InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CustomerProfilePage(),
+                ),
+              );
+            },
+            child: const CircleAvatar(
+              radius: 24,
+              backgroundColor: Color(0xFFFFE0B2),
+              child: Icon(
+                Icons.person,
+                color: Color(0xFFFF7A00),
+              ),
             ),
           ),
           const SizedBox(width: 12),
