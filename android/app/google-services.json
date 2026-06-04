@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "113222246651",
+    "project_id": "tiffinhub-app",
+    "storage_bucket": "tiffinhub-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:113222246651:android:2f958379b358dcc10b505e",
+        "android_client_info": {
+          "package_name": "com.tiffinhub.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "113222246651-f40ko3j4betqakdagoh4ce9r2pnq55dn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tiffinhub.app",
+            "certificate_hash": "af767518b7357cb1ac7888d59d8354a2ea606edc"
+          }
+        },
+        {
+          "client_id": "113222246651-426hvqimfuq3dbdg1upqmr9eveid0usr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB93mSvmG639MK2OzNZms9n2nEHGAYDJ00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "113222246651-426hvqimfuq3dbdg1upqmr9eveid0usr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
