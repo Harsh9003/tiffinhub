@@ -12,10 +12,7 @@ import '../widgets/restaurant_details/start_subscription_sheet.dart';
 class RestaurantDetailsPage extends StatelessWidget {
   final RestaurantModel restaurant;
 
-  const RestaurantDetailsPage({
-    super.key,
-    required this.restaurant,
-  });
+  const RestaurantDetailsPage({super.key, required this.restaurant});
 
   void _openSubscriptionPage(BuildContext context) {
     Navigator.push(
@@ -42,15 +39,31 @@ class RestaurantDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monthlyDisplayPrice = restaurant.monthlyLunchDinnerPrice > 0
-        ? restaurant.monthlyLunchDinnerPrice
-        : restaurant.monthlyPrice;
+    final plans = <Widget>[];
 
-    final weeklyDisplayPrice =
-        restaurant.weeklyLunchDinnerPrice > 0 ? restaurant.weeklyLunchDinnerPrice : restaurant.weeklyPrice;
+    if (restaurant.trialPlanEnabled) {
+      plans.add(RestaurantPlanCard(
+        title: 'Trial Tiffin',
+        description: 'Single meal trial available',
+        price: restaurant.trialPrice,
+      ));
+    }
 
-    final trialDisplayPrice =
-        restaurant.trialLunchPrice > 0 ? restaurant.trialLunchPrice : restaurant.trialPrice;
+    if (restaurant.weeklyPlanEnabled) {
+      plans.add(RestaurantPlanCard(
+        title: 'Weekly Veg Plan',
+        description: 'Weekly lunch, dinner or both meals',
+        price: restaurant.weeklyPrice,
+      ));
+    }
+
+    if (restaurant.monthlyPlanEnabled) {
+      plans.add(RestaurantPlanCard(
+        title: 'Monthly Veg Plan',
+        description: 'Monthly lunch, dinner or both meals',
+        price: restaurant.monthlyPrice,
+      ));
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF7),
@@ -60,44 +73,28 @@ class RestaurantDetailsPage extends StatelessWidget {
             RestaurantDetailHeader(restaurant: restaurant),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 children: [
                   const RestaurantImageGallery(),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   RestaurantInfoCard(restaurant: restaurant),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   const _SectionTitle(title: 'Available Tiffin Plans'),
-                  const SizedBox(height: 12),
-                  RestaurantPlanCard(
-                    title: 'Monthly Veg Plan',
-                    description: 'Lunch + Dinner • 30 Days',
-                    price: monthlyDisplayPrice,
-                  ),
-                  const SizedBox(height: 12),
-                  RestaurantPlanCard(
-                    title: 'Weekly Veg Plan',
-                    description: 'Lunch + Dinner • 7 Days',
-                    price: weeklyDisplayPrice,
-                  ),
-                  const SizedBox(height: 12),
-                  RestaurantPlanCard(
-                    title: 'Trial Tiffin',
-                    description: 'Single meal trial',
-                    price: trialDisplayPrice,
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 10),
+                  ...plans.expand((plan) => [plan, const SizedBox(height: 10)]),
+                  const SizedBox(height: 8),
                   const RestaurantMenuPreview(),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
                   const RestaurantReviewsSection(),
-                  const SizedBox(height: 90),
+                  const SizedBox(height: 86),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
               child: SizedBox(
                 width: double.infinity,
-                height: 54,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () => _openSubscriptionPage(context),
                   style: ElevatedButton.styleFrom(
@@ -105,17 +102,9 @@ class RestaurantDetailsPage extends StatelessWidget {
                     foregroundColor: Colors.white,
                     elevation: 4,
                     shadowColor: Colors.orange.withOpacity(0.25),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text(
-                    'Start Subscription',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+                  child: const Text('Start Subscription', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
                 ),
               ),
             ),
@@ -128,22 +117,10 @@ class RestaurantDetailsPage extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String title;
-
-  const _SectionTitle({
-    required this.title,
-  });
-
+  const _SectionTitle({required this.title});
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+      );
 }

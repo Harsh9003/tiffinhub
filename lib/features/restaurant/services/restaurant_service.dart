@@ -6,104 +6,96 @@ import '../../../models/restaurant_model.dart';
 class RestaurantService {
   RestaurantService._();
 
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FirebaseFirestore _db = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  static CollectionReference<Map<String, dynamic>> get _restaurantsRef {
-    return _firestore.collection('restaurants');
+  static String get _uid => _auth.currentUser!.uid;
+
+  static CollectionReference<Map<String, dynamic>> get _restaurants =>
+      _db.collection('restaurants');
+
+  static Stream<RestaurantModel?> watchMyRestaurant() {
+    return _restaurants.where('ownerId', isEqualTo: _uid).limit(1).snapshots().map(
+      (snapshot) {
+        if (snapshot.docs.isEmpty) return null;
+        return RestaurantModel.fromDoc(snapshot.docs.first);
+      },
+    );
   }
 
-  static Future<void> createRestaurantProfile({
-    required String restaurantName,
-    required String ownerName,
-    required String phone,
-    required String address,
-    required String city,
-    required String serviceArea,
-    required bool isVegAvailable,
-    required bool isNonVegAvailable,
-    required bool isLunchAvailable,
-    required bool isDinnerAvailable,
-    required double monthlyPrice,
-    required double weeklyPrice,
-    required double trialPrice,
-    required double monthlyLunchPrice,
-    required double monthlyDinnerPrice,
-    required double monthlyLunchDinnerPrice,
-    required double weeklyLunchPrice,
-    required double weeklyDinnerPrice,
-    required double weeklyLunchDinnerPrice,
-    required double trialLunchPrice,
-    required double trialDinnerPrice,
-    required double trialLunchDinnerPrice,
-  }) async {
-    final currentUser = _auth.currentUser;
+  static Future<String?> getMyRestaurantId() async {
+    final snapshot = await _restaurants.where('ownerId', isEqualTo: _uid).limit(1).get();
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
+  }
 
-    if (currentUser == null) {
-      throw Exception('User is not logged in.');
+  static Future<void> registerOrUpdateRestaurant({
+    String? restaurantId,
+    required Map<String, dynamic> data,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('Please sign in before submitting restaurant details.');
     }
 
-    final docRef = _restaurantsRef.doc();
+    final existingId = restaurantId ?? await getMyRestaurantId();
+    final docRef = existingId == null ? _restaurants.doc() : _restaurants.doc(existingId);
 
-    final restaurant = RestaurantModel(
-      id: docRef.id,
-      ownerId: currentUser.uid,
-      restaurantName: restaurantName,
-      ownerName: ownerName,
-      phone: phone,
-      address: address,
-      city: city,
-      serviceArea: serviceArea,
-      isVegAvailable: isVegAvailable,
-      isNonVegAvailable: isNonVegAvailable,
-      isLunchAvailable: isLunchAvailable,
-      isDinnerAvailable: isDinnerAvailable,
-      monthlyPrice: monthlyPrice,
-      weeklyPrice: weeklyPrice,
-      trialPrice: trialPrice,
-      monthlyLunchPrice: monthlyLunchPrice,
-      monthlyDinnerPrice: monthlyDinnerPrice,
-      monthlyLunchDinnerPrice: monthlyLunchDinnerPrice,
-      weeklyLunchPrice: weeklyLunchPrice,
-      weeklyDinnerPrice: weeklyDinnerPrice,
-      weeklyLunchDinnerPrice: weeklyLunchDinnerPrice,
-      trialLunchPrice: trialLunchPrice,
-      trialDinnerPrice: trialDinnerPrice,
-      trialLunchDinnerPrice: trialLunchDinnerPrice,
-      imageUrl: null,
-      isApproved: false,
-      isActive: true,
-      rating: 0,
-      createdAt: DateTime.now(),
-    );
+    final payload = <String, dynamic>{
+      ...data,
+      'id': docRef.id,
+      'restaurantId': docRef.id,
+      'ownerId': user.uid,
+      'ownerEmail': user.email ?? '',
+      'registrationStatus': 'pending_review',
+      'isApproved': false,
+      'isActive': false,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
 
-    await docRef.set(restaurant.toMap());
+    if (existingId == null) {
+      payload['createdAt'] = FieldValue.serverTimestamp();
+      payload['rating'] = 0.0;
+      payload['totalRatings'] = 0;
+      payload['activeCustomers'] = 0;
+      payload['todayDeliveries'] = 0;
+      payload['pendingDeliveries'] = 0;
+      payload['revenueToday'] = 0;
+      payload['healthScore'] = 0;
+    }
+
+    await docRef.set(payload, SetOptions(merge: true));
   }
 
-  static Stream<List<RestaurantModel>> approvedRestaurantsStream() {
-    return _restaurantsRef
-        .where('isApproved', isEqualTo: true)
-        .where('isActive', isEqualTo: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => RestaurantModel.fromMap(doc.data()))
-              .toList(),
-        );
+  static Stream<QuerySnapshot<Map<String, dynamic>>> watchSubscriptionRequests(String restaurantId) {
+    return _db
+        .collection('subscription_requests')
+        .where('restaurantId', isEqualTo: restaurantId)
+        .snapshots();
   }
 
-  static Future<RestaurantModel?> getMyRestaurantProfile() async {
-    final currentUser = _auth.currentUser;
+  static Stream<QuerySnapshot<Map<String, dynamic>>> watchTodayDeliveries(String restaurantId) {
+    return _db
+        .collection('deliveries')
+        .where('restaurantId', isEqualTo: restaurantId)
+        .snapshots();
+  }
 
-    if (currentUser == null) return null;
-
-    final snapshot = await _restaurantsRef
-        .where('ownerId', isEqualTo: currentUser.uid)
-        .limit(1)
-        .get();
+  static Future<void> updateRestaurantOpenStatus({
+    required String restaurantId,
+    required bool isOpen,
+  }) async {
+    await _restaurants.doc(restaurantId).update({
+      'isOpenNow': isOpen,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+  static Future<Map<String, dynamic>?> getMyRestaurantData() async {
+    final snapshot =
+        await _restaurants.where('ownerId', isEqualTo: _uid).limit(1).get();
 
     if (snapshot.docs.isEmpty) return null;
 
-    return RestaurantModel.fromMap(snapshot.docs.first.data());
+    return snapshot.docs.first.data();
   }
 }

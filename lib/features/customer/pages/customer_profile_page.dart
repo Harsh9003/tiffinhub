@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'customer_addresses_page.dart';
+import 'address_change_request_page.dart';
+
 class CustomerProfilePage extends StatelessWidget {
   const CustomerProfilePage({super.key});
 
@@ -98,7 +101,27 @@ class CustomerProfilePage extends StatelessWidget {
                         icon: Icons.location_on_rounded,
                         title: 'Saved Addresses',
                         subtitle: 'Manage home, office and other delivery addresses',
-                        onTap: () => _comingSoon(context),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CustomerAddressesPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      _PremiumTile(
+                        icon: Icons.compare_arrows_rounded,
+                        title: 'Address Change Request',
+                        subtitle: 'Request approval for active delivery address changes',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AddressChangeRequestPage(),
+                            ),
+                          );
+                        },
                       ),
                       _PremiumTile(
                         icon: Icons.receipt_long_rounded,

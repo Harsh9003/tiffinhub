@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+// import '../features/restaurant/pages/restaurant_registration_page.dart';
 import '../features/auth/pages/auth_wrapper.dart';
 import 'theme.dart';
 
@@ -13,6 +13,7 @@ class TiffinHubApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const AuthWrapper(),
+      // home: const RestaurantRegistrationPage(),
     );
   }
 }
