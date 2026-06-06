@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:113222246651:android:dbe58b45451083c90b505e",
+        "android_client_info": {
+          "package_name": "com.tiffinhub.restaurant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "113222246651-bndcjvmue8tg63ab5u33apvren4til0c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tiffinhub.restaurant",
+            "certificate_hash": "af767518b7357cb1ac7888d59d8354a2ea606edc"
+          }
+        },
+        {
+          "client_id": "113222246651-426hvqimfuq3dbdg1upqmr9eveid0usr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB93mSvmG639MK2OzNZms9n2nEHGAYDJ00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "113222246651-426hvqimfuq3dbdg1upqmr9eveid0usr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

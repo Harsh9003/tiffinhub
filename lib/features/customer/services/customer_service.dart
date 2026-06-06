@@ -11,6 +11,7 @@ class CustomerAddressModel {
   final String city;
   final String pincode;
   final bool isDefault;
+  final bool isSelected;
 
   CustomerAddressModel({
     required this.id,
@@ -22,6 +23,7 @@ class CustomerAddressModel {
     required this.city,
     required this.pincode,
     required this.isDefault,
+    required this.isSelected,
   });
 
   factory CustomerAddressModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -36,6 +38,7 @@ class CustomerAddressModel {
       city: data['city'] ?? '',
       pincode: data['pincode'] ?? '',
       isDefault: data['isDefault'] == true,
+      isSelected: data['isSelected'] == true || data['selected'] == true,
     );
   }
 }
@@ -118,6 +121,8 @@ class CustomerService {
           .toList();
 
       list.sort((a, b) {
+        if (a.isSelected && !b.isSelected) return -1;
+        if (!a.isSelected && b.isSelected) return 1;
         if (a.isDefault && !b.isDefault) return -1;
         if (!a.isDefault && b.isDefault) return 1;
         return 0;
@@ -140,12 +145,19 @@ class CustomerService {
     final ref = _addressRef();
     final oldAddresses = await ref.get();
     final shouldDefault = makeDefault || oldAddresses.docs.isEmpty;
+    final shouldSelect = oldAddresses.docs.isEmpty;
 
     final batch = _db.batch();
 
     if (shouldDefault) {
       for (final doc in oldAddresses.docs) {
         batch.update(doc.reference, {'isDefault': false});
+      }
+    }
+
+    if (shouldSelect) {
+      for (final doc in oldAddresses.docs) {
+        batch.update(doc.reference, {'isSelected': false, 'selected': false});
       }
     }
 
@@ -159,9 +171,22 @@ class CustomerService {
       'city': city.trim(),
       'pincode': pincode.trim(),
       'isDefault': shouldDefault,
+      'isSelected': shouldSelect,
+      'selected': shouldSelect,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    if (shouldSelect) {
+      batch.set(
+        _db.collection('users').doc(_uid),
+        {
+          'selectedAddressId': newDoc.id,
+          'updatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
 
     await batch.commit();
   }
@@ -204,7 +229,54 @@ class CustomerService {
   }
 
   static Future<void> deleteAddress(String addressId) async {
-    await _addressRef().doc(addressId).delete();
+    final ref = _addressRef();
+    final userRef = _db.collection('users').doc(_uid);
+
+    final userDoc = await userRef.get();
+    final selectedAddressId = userDoc.data()?['selectedAddressId']?.toString();
+
+    await ref.doc(addressId).delete();
+
+    if (selectedAddressId == addressId) {
+      final remaining = await ref.limit(1).get();
+      if (remaining.docs.isEmpty) {
+        await userRef.set(
+          {
+            'selectedAddressId': FieldValue.delete(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      } else {
+        await setSelectedAddress(remaining.docs.first.id);
+      }
+    }
+  }
+
+  static Future<void> setSelectedAddress(String addressId) async {
+    final ref = _addressRef();
+    final all = await ref.get();
+
+    final batch = _db.batch();
+
+    for (final doc in all.docs) {
+      batch.update(doc.reference, {
+        'isSelected': doc.id == addressId,
+        'selected': doc.id == addressId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    batch.set(
+      _db.collection('users').doc(_uid),
+      {
+        'selectedAddressId': addressId,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    await batch.commit();
   }
 
   static Future<void> setDefaultAddress(String addressId) async {
@@ -216,6 +288,7 @@ class CustomerService {
     for (final doc in all.docs) {
       batch.update(doc.reference, {
         'isDefault': doc.id == addressId,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
     }
 

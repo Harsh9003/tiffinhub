@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/customer_header.dart';
 import '../widgets/customer_search_bar.dart';
-import '../widgets/customer_categories.dart';
 import '../widgets/customer_offer_card.dart';
 import '../widgets/restaurant_card.dart';
 import '../services/customer_restaurant_service.dart';
@@ -13,14 +12,19 @@ class CustomerDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: () {
+      FocusManager.instance.primaryFocus?.unfocus();
+    },
+    child: Scaffold(
       backgroundColor: const Color(0xFFFFFBF7),
       body: SafeArea(
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             const SliverToBoxAdapter(child: CustomerHeader()),
             const SliverToBoxAdapter(child: CustomerSearchBar()),
-            const SliverToBoxAdapter(child: CustomerCategories()),
             const SliverToBoxAdapter(child: CustomerOfferCard()),
             SliverToBoxAdapter(
               child: StreamBuilder<List<RestaurantModel>>(
@@ -82,6 +86,7 @@ class CustomerDashboard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

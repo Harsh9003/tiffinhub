@@ -2,9 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:tiffinhub/features/customer/pages/customer_faq_page.dart';
+import 'package:tiffinhub/features/customer/pages/payment_billing_page.dart';
 
 import 'customer_addresses_page.dart';
 import 'address_change_request_page.dart';
+import 'help_support_page.dart';
+import 'privacy_policy_page.dart';
+import 'about_tiffinhub_page.dart';
 
 class CustomerProfilePage extends StatelessWidget {
   const CustomerProfilePage({super.key});
@@ -130,31 +135,72 @@ class CustomerProfilePage extends StatelessWidget {
                         onTap: () => _comingSoon(context),
                       ),
                       _PremiumTile(
-                        icon: Icons.payments_rounded,
-                        title: 'Payment Preference',
-                        subtitle: 'Cash, UPI and delivery payment status',
-                        onTap: () => _comingSoon(context),
+                        icon: Icons.receipt_long_rounded,
+                        title: 'Payment & Billing',
+                        subtitle: 'Payment history, invoices and billing support',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PaymentBillingPage(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle(title: 'Support'),
                       const SizedBox(height: 10),
                       _PremiumTile(
+                          icon: Icons.quiz_rounded,
+                          title: 'FAQ',
+                          subtitle: 'Quick answers about plans, payments and app features',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CustomerFaqPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      _PremiumTile(
                         icon: Icons.support_agent_rounded,
                         title: 'Help & Support',
                         subtitle: 'Get help with orders and subscriptions',
-                        onTap: () => _comingSoon(context),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const HelpSupportPage(),
+                            ),
+                          );
+                        },
                       ),
                       _PremiumTile(
                         icon: Icons.privacy_tip_rounded,
                         title: 'Privacy Policy',
                         subtitle: 'Read how your data is used and protected',
-                        onTap: () => _comingSoon(context),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PrivacyPolicyPage(),
+                            ),
+                          );
+                        },
                       ),
                       _PremiumTile(
                         icon: Icons.info_rounded,
                         title: 'About TiffinHub',
                         subtitle: 'App information and service details',
-                        onTap: () => _comingSoon(context),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AboutTiffinHubPage(),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
                       _ActionButtons(

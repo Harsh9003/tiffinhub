@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../services/customer_service.dart';
 
 class CustomerAddressesPage extends StatelessWidget {
-  const CustomerAddressesPage({super.key});
+  final bool returnToPreviousOnSelect;
+
+  const CustomerAddressesPage({
+    super.key,
+    this.returnToPreviousOnSelect = false,
+  });
 
   static const Color _bg = Color(0xFFFFFBF7);
   static const Color _orange = Color(0xFFFF6A00);
@@ -32,7 +37,7 @@ class CustomerAddressesPage extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          'Address load nahi ho paaye.\n${snapshot.error}',
+                          'Unable to load address information. Please try again later.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
@@ -51,6 +56,7 @@ class CustomerAddressesPage extends StatelessWidget {
                       ...addresses.map(
                         (address) => _AddressCard(
                           address: address,
+                          onSelect: () => _selectAddress(context, address),
                           onEdit: () => _openAddressSheet(context, address: address),
                           onDelete: () => _deleteAddress(context, address),
                           onDefault: () => _setDefault(context, address),
@@ -78,7 +84,7 @@ class CustomerAddressesPage extends StatelessWidget {
     );
   }
 
-  static Future<void> _openAddressSheet(
+  Future<void> _openAddressSheet(
     BuildContext context, {
     CustomerAddressModel? address,
   }) async {
@@ -88,6 +94,26 @@ class CustomerAddressesPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => _AddressFormSheet(address: address),
     );
+  }
+
+
+  Future<void> _selectAddress(
+    BuildContext context,
+    CustomerAddressModel address,
+  ) async {
+    try {
+      await CustomerService.setSelectedAddress(address.id);
+      if (!context.mounted) return;
+
+      _toast(context, 'Delivery address selected');
+
+      if (returnToPreviousOnSelect) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      _toast(context, 'Unable to select address. Please try again later.');
+    }
   }
 
   static Future<void> _deleteAddress(
@@ -271,12 +297,14 @@ class _EmptyAddressCard extends StatelessWidget {
 
 class _AddressCard extends StatelessWidget {
   final CustomerAddressModel address;
+  final VoidCallback onSelect;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onDefault;
 
   const _AddressCard({
     required this.address,
+    required this.onSelect,
     required this.onEdit,
     required this.onDelete,
     required this.onDefault,
@@ -291,10 +319,13 @@ class _AddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onSelect,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
@@ -341,6 +372,8 @@ class _AddressCard extends StatelessWidget {
                       ),
                     ),
                     if (address.isDefault) const _DefaultBadge(),
+                    if (!address.isDefault && address.isSelected)
+                      const _SelectedBadge(),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -383,6 +416,30 @@ class _AddressCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    ),
+    );
+  }
+}
+
+class _SelectedBadge extends StatelessWidget {
+  const _SelectedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: CustomerAddressesPage._softOrange,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: const Text(
+        'Selected',
+        style: TextStyle(
+          color: CustomerAddressesPage._orange,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
