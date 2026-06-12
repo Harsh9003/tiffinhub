@@ -3,10 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class StartSubscriptionSheet extends StatefulWidget {
+  final String restaurantId;
   final String restaurantName;
   final double planPrice;
   final double trialPrice;
   final double weeklyPrice;
+  final String ownerName;
+  final List<String> lunchSlots;
+  final List<String> dinnerSlots;
 
   final double monthlyLunchPrice;
   final double monthlyDinnerPrice;
@@ -20,10 +24,14 @@ class StartSubscriptionSheet extends StatefulWidget {
 
   const StartSubscriptionSheet({
     super.key,
+    required this.restaurantId,
     required this.restaurantName,
     required this.planPrice,
     required this.trialPrice,
     required this.weeklyPrice,
+    this.ownerName = '',
+    this.lunchSlots = const [],
+    this.dinnerSlots = const [],
     required this.monthlyLunchPrice,
     required this.monthlyDinnerPrice,
     required this.monthlyLunchDinnerPrice,
@@ -95,6 +103,46 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
   double get _planSubtotal => _selectedPlanPrice * _quantity;
 
   @override
+  void initState() {
+    super.initState();
+
+    final availableLunchSlots = _effectiveLunchSlots;
+    final availableDinnerSlots = _effectiveDinnerSlots;
+
+    if (availableLunchSlots.isNotEmpty) {
+      _lunchTime = availableLunchSlots.first;
+    }
+
+    if (availableDinnerSlots.isNotEmpty) {
+      _dinnerTime = availableDinnerSlots.first;
+    }
+  }
+
+  List<String> get _effectiveLunchSlots {
+    final cleaned = widget.lunchSlots
+        .map((slot) => slot.trim())
+        .where((slot) => slot.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (cleaned.isNotEmpty) return cleaned;
+
+    return const ['11:00 AM - 1:00 PM', '12:00 PM - 2:00 PM', '1:00 PM - 3:00 PM'];
+  }
+
+  List<String> get _effectiveDinnerSlots {
+    final cleaned = widget.dinnerSlots
+        .map((slot) => slot.trim())
+        .where((slot) => slot.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (cleaned.isNotEmpty) return cleaned;
+
+    return const ['6:00 PM - 8:00 PM', '7:00 PM - 9:00 PM', '8:00 PM - 10:00 PM'];
+  }
+
+  @override
   void dispose() {
     _noteController.dispose();
     super.dispose();
@@ -153,6 +201,7 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
         'customerName': user.displayName ?? '',
         'customerEmail': user.email ?? '',
         'customerPhone': user.phoneNumber ?? '',
+        'restaurantId': widget.restaurantId,
         'restaurantName': widget.restaurantName,
         'planName': _selectedPlan,
         'mealType': _mealType,
@@ -341,7 +390,10 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 92),
               children: [
-                _RestaurantSummaryCard(restaurantName: widget.restaurantName),
+                _RestaurantSummaryCard(
+                  restaurantName: widget.restaurantName,
+                  ownerName: widget.ownerName,
+                ),
                 const SizedBox(height: 8),
                 _SectionCard(
                   number: '1',
@@ -465,7 +517,7 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
       label: 'Lunch Time',
       value: _lunchTime,
       icon: Icons.access_time_rounded,
-      items: const ['11:00 AM - 1:00 PM', '12:00 PM - 2:00 PM', '1:00 PM - 3:00 PM'],
+      items: _effectiveLunchSlots,
       onChanged: (value) => setState(() => _lunchTime = value!),
     );
 
@@ -473,7 +525,7 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
       label: 'Dinner Time',
       value: _dinnerTime,
       icon: Icons.access_time_rounded,
-      items: const ['6:00 PM - 8:00 PM', '7:00 PM - 9:00 PM', '8:00 PM - 10:00 PM'],
+      items: _effectiveDinnerSlots,
       onChanged: (value) => setState(() => _dinnerTime = value!),
     );
 
@@ -652,7 +704,7 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
         child: Row(
           children: [
             const Icon(Icons.calendar_month_rounded, color: _orange, size: 22),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -807,8 +859,12 @@ class _StartSubscriptionSheetState extends State<StartSubscriptionSheet> {
 
 class _RestaurantSummaryCard extends StatelessWidget {
   final String restaurantName;
+  final String ownerName;
 
-  const _RestaurantSummaryCard({required this.restaurantName});
+  const _RestaurantSummaryCard({
+    required this.restaurantName,
+    required this.ownerName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -842,33 +898,15 @@ class _RestaurantSummaryCard extends StatelessWidget {
                   style: const TextStyle(color: Color(0xFF241A14), fontSize: 17, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE9F8EE),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.star_rounded, color: Color(0xFF16A34A), size: 16),
-                          SizedBox(width: 3),
-                          Text('4.6', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.w900)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Pure Veg',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFF7B6250), fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
+                Text(
+                  ownerName.trim().isEmpty ? 'Owner details will be verified by restaurant' : 'Owner: ${ownerName.trim()}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF7B6250),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -1027,8 +1065,8 @@ class _ModeTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: fullWidth ? double.infinity : null,
-        height: 58,
-        padding: const EdgeInsets.all(8),
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFFFF3EA) : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -1040,8 +1078,8 @@ class _ModeTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: selected ? const Color(0xFFFFE0C8) : const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(10),
@@ -1058,20 +1096,20 @@ class _ModeTile extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    maxLines: fullWidth ? 1 : 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFF7B6250), fontSize: 10.5, height: 1.15, fontWeight: FontWeight.w600),
+                    style: const TextStyle(color: Color(0xFF7B6250), fontSize: 9.5, height: 1.0, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle_rounded, color: Color(0xFFFF6A00), size: 18),
+              const Icon(Icons.check_circle_rounded, color: Color(0xFFFF6A00), size: 15),
           ],
         ),
       ),

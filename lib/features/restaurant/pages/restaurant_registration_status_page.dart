@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'restaurant_auth_wrapper.dart';
-import 'restaurant_dashboard_page.dart';
+
 import 'restaurant_registration_page.dart';
 
 class RestaurantRegistrationStatusPage extends StatelessWidget {
@@ -87,7 +87,7 @@ class RestaurantRegistrationStatusPage extends StatelessWidget {
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (_) => const RestaurantDashboardPage()),
+                              MaterialPageRoute(builder: (_) => const RestaurantAuthWrapper()),
                             );
                           },
                         )

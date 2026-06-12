@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'restaurant_dashboard_page.dart';
 import 'restaurant_registration_page.dart';
 import 'restaurant_registration_status_page.dart';
 
@@ -68,7 +66,9 @@ class RestaurantAuthWrapper extends StatelessWidget {
         final isActive = data['isActive'] == true;
 
         if (status == 'approved' && isApproved && isActive) {
-          return const RestaurantDashboardPage();
+          return RestaurantRegistrationStatusPage(
+            restaurantId: doc.id,
+          );
         }
 
         return RestaurantRegistrationStatusPage(
